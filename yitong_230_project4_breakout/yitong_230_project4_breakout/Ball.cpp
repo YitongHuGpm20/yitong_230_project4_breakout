@@ -7,4 +7,12 @@
 #include <SFML/Main.hpp>
 #include "Ball.h"
 
+using namespace sf;
 
+CircleShape Ball::SpawnBall() {
+	CircleShape shape;
+	shape.setPosition(loc.x, loc.y);
+	shape.setRadius(radius);
+	shape.setFillColor(Color::White);
+	return shape;
+}

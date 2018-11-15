@@ -6,6 +6,9 @@
 #include <SFML/OpenGL.hpp>
 #include <SFML/Main.hpp>
 #pragma once
+
+using namespace sf;
+
 class Bricks
 {
 public:

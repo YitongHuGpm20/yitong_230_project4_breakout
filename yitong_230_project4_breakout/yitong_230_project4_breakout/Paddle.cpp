@@ -9,6 +9,10 @@
 
 using namespace sf;
 
-void Paddle::SpawnPaddle() {
-	RectangleShape();
+RectangleShape Paddle::SpawnPaddle() {
+	RectangleShape shape;
+	shape.setPosition(loc.x, loc.y);
+	shape.setSize(Vector2f(paddleW, paddleH));
+	shape.setFillColor(Color::Blue);
+	return shape;
 }

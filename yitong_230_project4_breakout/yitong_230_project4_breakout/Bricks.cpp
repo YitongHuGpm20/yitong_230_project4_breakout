@@ -7,3 +7,4 @@
 #include <SFML/Main.hpp>
 #include "Bricks.h"
 
+using namespace sf;

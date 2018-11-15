@@ -6,9 +6,16 @@
 #include <SFML/OpenGL.hpp>
 #include <SFML/Main.hpp>
 #pragma once
+
+using namespace sf;
+
 class Ball
 {
 public:
-	
+	Vector2f loc;
+	float radius = 15;
+	Vector2f vel = Vector2f(0, -200);
+
+	CircleShape SpawnBall();
 };
 
