@@ -92,12 +92,16 @@ void update_state(float dt)
 
 	//ball movement
 	if (startBall) {
-		if (ball.loc.y < 0 && ball.vel.y < 0)
+		if (ball.loc.y < 0 && ball.vel.y < 0) //bounce off wall
 			ball.vel.y = -ball.vel.y;
 		if (ball.loc.x < 0 && ball.vel.x < 0)
 			ball.vel.x = abs(ball.vel.x);
 		if (ball.loc.x + ball.radius * 2 > 1000 && ball.vel.x > 0)
 			ball.vel.x = -abs(ball.vel.x);
+		if (ball.loc.x + ball.radius >= paddle.loc.x && ball.loc.x + ball.radius <= paddle.loc.x + paddle.paddleW && ball.loc.y + 2 * ball.radius >= paddle.loc.y && ball.vel.y > 0) {
+			ball.vel.x = 600 * ((ball.loc.x + ball.radius - paddle.loc.x - paddle.paddleW / 2) / 60);
+			ball.vel.y = -ball.vel.y;
+		}
 		ball.loc.x += ball.vel.x * dt;
 		ball.loc.y += ball.vel.y * dt;
 	}
