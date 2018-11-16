@@ -12,10 +12,10 @@ using namespace sf;
 class Paddle
 {
 public:
-	float paddleW = 120;
+	float paddleW = 160;
 	float paddleH = 30;
-	Vector2f loc = Vector2f((1000 - paddleW) / 2, 1000 - paddleH - 40);
-	Vector2f vel = Vector2f(300, 0);
+	Vector2f loc = Vector2f((900 - paddleW) / 2, 900 - paddleH - 40);
+	Vector2f vel = Vector2f(400, 0);
 
 	RectangleShape SpawnPaddle();
 };

@@ -14,7 +14,7 @@ class Ball
 public:
 	Vector2f loc;
 	float radius = 15;
-	Vector2f vel = Vector2f(0, -200);
+	Vector2f vel = Vector2f(0, -400);
 
 	CircleShape SpawnBall();
 };
