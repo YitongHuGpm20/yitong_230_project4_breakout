@@ -9,10 +9,9 @@
 
 using namespace sf;
 
-RectangleShape Lives::SpawnLives(int livepos) {
+RectangleShape Lives::SpawnLives() {
 	RectangleShape shape;
-	loc.x = livepos;
-	loc.y = 1000 - liveH - 10;
+	loc.y = 900 - liveH - 10;
 	shape.setPosition(loc.x, loc.y);
 	shape.setSize(Vector2f(liveW, liveH));
 	shape.setFillColor(Color::Blue);

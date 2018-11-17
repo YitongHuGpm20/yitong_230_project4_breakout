@@ -18,6 +18,6 @@ public:
 	int space = 70;
 	Vector2f loc;
 
-	RectangleShape SpawnLives(int);
+	RectangleShape SpawnLives();
 };
 

@@ -5,12 +5,12 @@
 #include <SFML/System.hpp>
 #include <SFML/OpenGL.hpp>
 #include <SFML/Main.hpp>
-#include "Paddle.h";
-#include "Ball.h";
-#include "Bricks.h";
-#include "Lives.h";
-#include <ctime>;
-#include <cmath>;
+#include "Paddle.h"
+#include "Ball.h"
+#include "Bricks.h"
+#include "Lives.h"
+#include <ctime>
+#include <cmath>
 
 using namespace sf;
 
@@ -20,18 +20,39 @@ void render_frame();
 RenderWindow window;
 Paddle paddle;
 Ball ball;
+Lives lives[10];
 bool startBall;
 float randStart;
+int livesLeft;
 
 int main()
 {
 	window.create(VideoMode(900, 900), "Zodiac Breakout");
+	Font font;
+	font.loadFromFile("arial.ttf");
+	Text lostMessage;
+	lostMessage.setFont(font);
+	lostMessage.setCharacterSize(36);
+	lostMessage.setString("Sorry, you lost :(");
+	lostMessage.setPosition(60, 5);
+	lostMessage.setFillColor(Color::Yellow);
+	lostMessage.setStyle(Text::Bold);
+	Text restart;
+	restart.setFont(font);
+	restart.setCharacterSize(24);
+	restart.setString("Press Enter to restart...");
+	restart.setPosition(70, 55);
+	restart.setFillColor(Color::Yellow);
+	restart.setStyle(Text::Italic);
+	
 	Clock clock;
 	ball.loc.y = paddle.loc.y - ball.radius * 2;
 	srand(time(0));
 	randStart = rand() % 100 - 60;
 	ball.loc.x = 900 / 2 - ball.radius + randStart;
 	startBall = false;
+	for (int i = 0; i < 10; i++)
+		lives[i].loc.x = 10 + lives[i].space * i;
 
 	while (window.isOpen())
 	{
@@ -43,10 +64,25 @@ int main()
 		}
 
 		float dt = clock.restart().asSeconds();
+		livesLeft = 1;
 
 		update_state(dt);
 		render_frame();
 		window.display();
+		if (livesLeft <= 0) {
+			RenderWindow lost(VideoMode(400, 100), "GAME OVER!");
+			while (lost.isOpen()) {
+				Event eventl;
+				while (lost.pollEvent(eventl)) {
+					if (Keyboard::isKeyPressed(Keyboard::Enter))
+						lost.close();
+				}
+				lost.clear();
+				lost.draw(lostMessage);
+				lost.draw(restart);
+				lost.display();
+			}
+		}
 	}
 
 	return 0;
@@ -65,7 +101,7 @@ void update_state(float dt)
 		if (!startBall)
 			ball.loc.x += paddle.vel.x * dt;
 	}
-	if (Keyboard::isKeyPressed(Keyboard::Space)) {
+	if (Keyboard::isKeyPressed(Keyboard::Space) && !startBall) {
 		startBall = true;
 		ball.vel.x = 400 * (randStart / 80);
 		ball.vel.y = -abs(sqrtf(400 * 400 - ball.vel.x * ball.vel.x));
@@ -119,6 +155,16 @@ void update_state(float dt)
 		ball.loc.x += ball.vel.x * dt;
 		ball.loc.y += ball.vel.y * dt;
 	}
+
+	//lose life
+	if (ball.loc.y >= 900) {
+		livesLeft--;
+		ball.loc.y = paddle.loc.y - ball.radius * 2;
+		srand(time(0));
+		randStart = rand() % 100 - 60;
+		ball.loc.x = paddle.loc.x + paddle.paddleW / 2 + randStart;
+		startBall = false;
+	}
 }
 
 void render_frame()
@@ -126,4 +172,6 @@ void render_frame()
 	window.clear();
 	window.draw(paddle.SpawnPaddle());
 	window.draw(ball.SpawnBall());
+	for (int i = 0; i < livesLeft; i++)
+		window.draw(lives[i].SpawnLives());
 }
