@@ -34,11 +34,14 @@ Ball ball;
 Lives lives[10];
 Bricks bricks[72];
 String printlevel;
+String printscore;
 bool startBall;
 float randStart;
 int livesLeft;
 int level;
 int hitBricks;
+int score;
+int combo;
 
 int main()
 {
@@ -66,6 +69,13 @@ int main()
 	leveltext.setPosition(10, 10);
 	leveltext.setFillColor(Color::Green);
 	leveltext.setStyle(Text::Bold);
+	Text scoretext;
+	scoretext.setFont(font);
+	scoretext.setCharacterSize(24);
+	scoretext.setString("SCORE: 0");
+	scoretext.setPosition(600, 10);
+	scoretext.setFillColor(Color::Green);
+	scoretext.setStyle(Text::Bold);
 
 	Texture brickArt;
 	brickArt.loadFromFile("brick.png");
@@ -79,6 +89,8 @@ int main()
 	livesLeft = 3;
 	level = 1;
 	hitBricks = 0;
+	score = 0;
+	combo = 0;
 	for (int i = 0; i < 10; i++)
 		lives[i].loc.x = 10 + lives[i].space * i;
 	for (int i = 0; i < 8; i++) {
@@ -99,6 +111,7 @@ int main()
 
 		float dt = clock.restart().asSeconds();
 
+		//display
 		update_state(dt);
 		render_frame();
 		for (int i = 0; i < 72; i++)
@@ -106,7 +119,12 @@ int main()
 		printlevel = "LEVEL: " + toString<int>(level);
 		leveltext.setString(printlevel);
 		window.draw(leveltext);
+		printscore = "SCORE: " + toString<int>(score);
+		scoretext.setString(printscore);
+		window.draw(scoretext);
 		window.display();
+		
+		//restart game
 		if (livesLeft <= 0) {
 			RenderWindow lost(VideoMode(400, 100), "GAME OVER!");
 			while (lost.isOpen()) {
@@ -169,36 +187,49 @@ void update_state(float dt)
 			if (ball.loc.x + ball.radius >= paddle.loc.x + 60 && ball.loc.x + ball.radius <= paddle.loc.x + 80) {
 				ball.vel.x = -ball.speed * 20 / 80;
 				ball.vel.y = -abs(sqrtf(ball.speed * ball.speed - ball.vel.x * ball.vel.x));
+				combo = 0;
 			}
 			else if (ball.loc.x + ball.radius > paddle.loc.x + 80 && ball.loc.x + ball.radius <= paddle.loc.x + 100) {
 				ball.vel.x = ball.speed * 20 / 80;
 				ball.vel.y = -abs(sqrtf(ball.speed * ball.speed - ball.vel.x * ball.vel.x));
+				combo = 0;
 			}
 			else if (ball.loc.x + ball.radius >= paddle.loc.x && ball.loc.x + ball.radius <= paddle.loc.x + 20) {
 				ball.vel.x = -ball.speed * 60 / 80;
 				ball.vel.y = -abs(sqrtf(ball.speed * ball.speed - ball.vel.x * ball.vel.x));
+				combo = 0;
 			}
 			else if (ball.loc.x + ball.radius >= paddle.loc.x + 140 && ball.loc.x + ball.radius <= paddle.loc.x + 160) {
 				ball.vel.x = ball.speed * 60 / 80;
 				ball.vel.y = -abs(sqrtf(ball.speed * ball.speed - ball.vel.x * ball.vel.x));
+				combo = 0;
 			}
 			else if (ball.loc.x + ball.radius >= paddle.loc.x && ball.loc.x + ball.radius <= paddle.loc.x + paddle.paddleW) {
 				ball.vel.x = ball.speed * ((ball.loc.x + ball.radius - paddle.loc.x - paddle.paddleW / 2) / 80);
 				ball.vel.y = -abs(sqrtf(ball.speed * ball.speed - ball.vel.x * ball.vel.x));
+				combo = 0;
 			}
 		}
 		//bounce on side of paddle
 		if (ball.loc.y <= paddle.loc.y + paddle.paddleH && ball.loc.y + ball.radius * 2 >= paddle.loc.y && ball.vel.y > 0) {
-			if (ball.loc.x + ball.radius < paddle.loc.x && ball.loc.x + ball.radius * 2 >= paddle.loc.x)
+			if (ball.loc.x + ball.radius < paddle.loc.x && ball.loc.x + ball.radius * 2 >= paddle.loc.x) {
 				ball.vel.x = -abs(ball.vel.x);
-			else if(ball.loc.x <= paddle.loc.x + paddle.paddleW && ball.loc.x + ball.radius > paddle.loc.x + paddle.paddleW)
+				combo = 0;
+			}
+			else if (ball.loc.x <= paddle.loc.x + paddle.paddleW && ball.loc.x + ball.radius > paddle.loc.x + paddle.paddleW) {
 				ball.vel.x = abs(ball.vel.x);
+				combo = 0;
+			}
 		}
 		if (ball.loc.y + ball.radius * 2 <= paddle.loc.y && ball.loc.y > paddle.loc.y + paddle.paddleH && ball.vel.y > 0) {
-			if (ball.loc.x + ball.radius * 2 >= paddle.loc.x)
+			if (ball.loc.x + ball.radius * 2 >= paddle.loc.x) {
 				ball.vel.x = -abs(ball.vel.x);
-			else if (ball.loc.x <= paddle.loc.x + paddle.paddleW)
+				combo = 0;
+			}
+			else if (ball.loc.x <= paddle.loc.x + paddle.paddleW) {
 				ball.vel.x = abs(ball.vel.x);
+				combo = 0;
+			}
 		}
 		//bounce off bricks
 		for (int i = 0; i < 72; i++) {
@@ -208,12 +239,16 @@ void update_state(float dt)
 					bricks[i].loc.x = 0;
 					bricks[i].loc.y = -100;
 					hitBricks++;
+					score += 100 + combo * 50;
+					combo++;
 				}
 				else if (ball.loc.y < bricks[i].loc.y + bricks[i].size.y && ball.loc.y + ball.radius * 2 >= bricks[i].loc.y &&ball.vel.y > 0) {
 					ball.vel.y = -abs(ball.vel.y);
 					bricks[i].loc.x = 0;
 					bricks[i].loc.y = -100;
 					hitBricks++;
+					score += 100 + combo * 50;
+					combo++;
 				}	
 			}
 			if (ball.loc.y + ball.radius <= bricks[i].loc.y + bricks[i].size.y && ball.loc.y + ball.radius >= bricks[i].loc.y) {
@@ -222,12 +257,16 @@ void update_state(float dt)
 					bricks[i].loc.x = 0;
 					bricks[i].loc.y = -100;
 					hitBricks++;
+					score += 100 + combo * 50;
+					combo++;
 				}
 				else if (ball.loc.x <= bricks[i].loc.x + bricks[i].size.x && ball.loc.x + ball.radius * 2 > bricks[i].loc.x + bricks[i].size.x && ball.vel.x < 0) {
 					ball.vel.x = abs(ball.vel.x);
 					bricks[i].loc.x = 0;
 					bricks[i].loc.y = -100;
 					hitBricks++;
+					score += 100 + combo * 50;
+					combo++;
 				}
 			}
 		}
@@ -243,6 +282,7 @@ void update_state(float dt)
 		randStart = rand() % 100 - 60;
 		ball.loc.x = paddle.loc.x + paddle.paddleW / 2 + randStart;
 		startBall = false;
+		combo = 0;
 	}
 
 	//finish level
