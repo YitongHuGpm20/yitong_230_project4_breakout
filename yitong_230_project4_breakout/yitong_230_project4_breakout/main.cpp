@@ -11,21 +11,34 @@
 #include "Lives.h"
 #include <ctime>
 #include <cmath>
+#include <string>
+#include <sstream>
+#include <iostream>
 
 using namespace sf;
+using namespace std;
 
 void update_state(float dt);
 void render_frame();
+
+template <typename T>
+string toString(T arg) {
+	stringstream ss;
+	ss << arg;
+	return ss.str();
+}
 
 RenderWindow window;
 Paddle paddle;
 Ball ball;
 Lives lives[10];
 Bricks bricks[72];
+String printlevel;
 bool startBall;
 float randStart;
 int livesLeft;
 int level;
+int hitBricks;
 
 int main()
 {
@@ -46,6 +59,13 @@ int main()
 	restart.setPosition(70, 55);
 	restart.setFillColor(Color::Yellow);
 	restart.setStyle(Text::Italic);
+	Text leveltext;
+	leveltext.setFont(font);
+	leveltext.setCharacterSize(24);
+	leveltext.setString("LEVEL: 1");
+	leveltext.setPosition(10, 10);
+	leveltext.setFillColor(Color::Green);
+	leveltext.setStyle(Text::Bold);
 
 	Texture brickArt;
 	brickArt.loadFromFile("brick.png");
@@ -58,6 +78,7 @@ int main()
 	startBall = false;
 	livesLeft = 3;
 	level = 1;
+	hitBricks = 0;
 	for (int i = 0; i < 10; i++)
 		lives[i].loc.x = 10 + lives[i].space * i;
 	for (int i = 0; i < 8; i++) {
@@ -82,6 +103,9 @@ int main()
 		render_frame();
 		for (int i = 0; i < 72; i++)
 			window.draw(bricks[i].SpawnBricks(brickArt));
+		printlevel = "LEVEL: " + toString<int>(level);
+		leveltext.setString(printlevel);
+		window.draw(leveltext);
 		window.display();
 		if (livesLeft <= 0) {
 			RenderWindow lost(VideoMode(400, 100), "GAME OVER!");
@@ -127,8 +151,8 @@ void update_state(float dt)
 	}
 	if (Keyboard::isKeyPressed(Keyboard::Space) && !startBall) {
 		startBall = true;
-		ball.vel.x = 400 * (randStart / 80);
-		ball.vel.y = -abs(sqrtf(400 * 400 - ball.vel.x * ball.vel.x));
+		ball.vel.x = ball.speed * (randStart / 80);
+		ball.vel.y = -abs(sqrtf(ball.speed * ball.speed - ball.vel.x * ball.vel.x));
 	}
 
 	//ball movement
@@ -143,24 +167,24 @@ void update_state(float dt)
 		//bounce on paddle
 		if (ball.loc.y + 2 * ball.radius >= paddle.loc.y && ball.loc.y < paddle.loc.y && ball.vel.y > 0) {
 			if (ball.loc.x + ball.radius >= paddle.loc.x + 60 && ball.loc.x + ball.radius <= paddle.loc.x + 80) {
-				ball.vel.x = -400 * 20 / 80;
-				ball.vel.y = -abs(sqrtf(400 * 400 - ball.vel.x * ball.vel.x));
+				ball.vel.x = -ball.speed * 20 / 80;
+				ball.vel.y = -abs(sqrtf(ball.speed * ball.speed - ball.vel.x * ball.vel.x));
 			}
 			else if (ball.loc.x + ball.radius > paddle.loc.x + 80 && ball.loc.x + ball.radius <= paddle.loc.x + 100) {
-				ball.vel.x = 400 * 20 / 80;
-				ball.vel.y = -abs(sqrtf(400 * 400 - ball.vel.x * ball.vel.x));
+				ball.vel.x = ball.speed * 20 / 80;
+				ball.vel.y = -abs(sqrtf(ball.speed * ball.speed - ball.vel.x * ball.vel.x));
 			}
 			else if (ball.loc.x + ball.radius >= paddle.loc.x && ball.loc.x + ball.radius <= paddle.loc.x + 20) {
-				ball.vel.x = -400 * 60 / 80;
-				ball.vel.y = -abs(sqrtf(400 * 400 - ball.vel.x * ball.vel.x));
+				ball.vel.x = -ball.speed * 60 / 80;
+				ball.vel.y = -abs(sqrtf(ball.speed * ball.speed - ball.vel.x * ball.vel.x));
 			}
 			else if (ball.loc.x + ball.radius >= paddle.loc.x + 140 && ball.loc.x + ball.radius <= paddle.loc.x + 160) {
-				ball.vel.x = 400 * 60 / 80;
-				ball.vel.y = -abs(sqrtf(400 * 400 - ball.vel.x * ball.vel.x));
+				ball.vel.x = ball.speed * 60 / 80;
+				ball.vel.y = -abs(sqrtf(ball.speed * ball.speed - ball.vel.x * ball.vel.x));
 			}
 			else if (ball.loc.x + ball.radius >= paddle.loc.x && ball.loc.x + ball.radius <= paddle.loc.x + paddle.paddleW) {
-				ball.vel.x = 400 * ((ball.loc.x + ball.radius - paddle.loc.x - paddle.paddleW / 2) / 80);
-				ball.vel.y = -abs(sqrtf(400 * 400 - ball.vel.x * ball.vel.x));
+				ball.vel.x = ball.speed * ((ball.loc.x + ball.radius - paddle.loc.x - paddle.paddleW / 2) / 80);
+				ball.vel.y = -abs(sqrtf(ball.speed * ball.speed - ball.vel.x * ball.vel.x));
 			}
 		}
 		//bounce on side of paddle
@@ -183,11 +207,13 @@ void update_state(float dt)
 					ball.vel.y = abs(ball.vel.y);
 					bricks[i].loc.x = 0;
 					bricks[i].loc.y = -100;
+					hitBricks++;
 				}
 				else if (ball.loc.y < bricks[i].loc.y + bricks[i].size.y && ball.loc.y + ball.radius * 2 >= bricks[i].loc.y &&ball.vel.y > 0) {
 					ball.vel.y = -abs(ball.vel.y);
 					bricks[i].loc.x = 0;
 					bricks[i].loc.y = -100;
+					hitBricks++;
 				}	
 			}
 			if (ball.loc.y + ball.radius <= bricks[i].loc.y + bricks[i].size.y && ball.loc.y + ball.radius >= bricks[i].loc.y) {
@@ -195,11 +221,13 @@ void update_state(float dt)
 					ball.vel.x = -abs(ball.vel.x);
 					bricks[i].loc.x = 0;
 					bricks[i].loc.y = -100;
+					hitBricks++;
 				}
 				else if (ball.loc.x <= bricks[i].loc.x + bricks[i].size.x && ball.loc.x + ball.radius * 2 > bricks[i].loc.x + bricks[i].size.x && ball.vel.x < 0) {
 					ball.vel.x = abs(ball.vel.x);
 					bricks[i].loc.x = 0;
 					bricks[i].loc.y = -100;
+					hitBricks++;
 				}
 			}
 		}
@@ -215,6 +243,26 @@ void update_state(float dt)
 		randStart = rand() % 100 - 60;
 		ball.loc.x = paddle.loc.x + paddle.paddleW / 2 + randStart;
 		startBall = false;
+	}
+
+	//finish level
+	if (hitBricks == 72) {
+		if(livesLeft < 10)
+			livesLeft++;
+		startBall = false;
+		level++;
+		for (int i = 0; i < 8; i++) {
+			for (int j = 0; j < 9; j++) {
+				bricks[i * 9 + j].loc.x = j * 100;
+				bricks[i * 9 + j].loc.y = 50 + i * 50;
+			}
+		}
+		paddle.loc = Vector2f((900 - paddle.paddleW) / 2, 900 - paddle.paddleH - 40);
+		randStart = rand() % 100 - 60;
+		ball.loc.x = 900 / 2 - ball.radius + randStart;
+		ball.loc.y = paddle.loc.y - ball.radius * 2;
+		hitBricks = 0;
+		ball.speed += 50;
 	}
 }
 
