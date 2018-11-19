@@ -56,9 +56,10 @@ int main()
 	randStart = rand() % 100 - 60;
 	ball.loc.x = 900 / 2 - ball.radius + randStart;
 	startBall = false;
+	livesLeft = 3;
+	level = 1;
 	for (int i = 0; i < 10; i++)
 		lives[i].loc.x = 10 + lives[i].space * i;
-	level = 1;
 	for (int i = 0; i < 8; i++) {
 		for (int j = 0; j < 9; j++) {
 			bricks[i * 9 + j].loc.x = j * 100;
@@ -76,7 +77,6 @@ int main()
 		}
 
 		float dt = clock.restart().asSeconds();
-		livesLeft = 3;
 
 		update_state(dt);
 		render_frame();
@@ -95,6 +95,16 @@ int main()
 				lost.draw(lostMessage);
 				lost.draw(restart);
 				lost.display();
+				livesLeft = 3;
+				for (int i = 0; i < 8; i++) {
+					for (int j = 0; j < 9; j++) {
+						bricks[i * 9 + j].loc.x = j * 100;
+						bricks[i * 9 + j].loc.y = 50 + i * 50;
+					}
+				}
+				paddle.loc = Vector2f((900 - paddle.paddleW) / 2, 900 - paddle.paddleH - 40);
+				randStart = rand() % 100 - 60;
+				ball.loc.x = 900 / 2 - ball.radius + randStart;
 			}
 		}
 	}
@@ -131,7 +141,7 @@ void update_state(float dt)
 		if (ball.loc.x + ball.radius * 2 > 900 && ball.vel.x > 0)
 			ball.vel.x = -abs(ball.vel.x);
 		//bounce on paddle
-		if (ball.loc.y + 2 * ball.radius >= paddle.loc.y && ball.vel.y > 0) {
+		if (ball.loc.y + 2 * ball.radius >= paddle.loc.y && ball.loc.y < paddle.loc.y && ball.vel.y > 0) {
 			if (ball.loc.x + ball.radius >= paddle.loc.x + 60 && ball.loc.x + ball.radius <= paddle.loc.x + 80) {
 				ball.vel.x = -400 * 20 / 80;
 				ball.vel.y = -abs(sqrtf(400 * 400 - ball.vel.x * ball.vel.x));
@@ -154,17 +164,44 @@ void update_state(float dt)
 			}
 		}
 		//bounce on side of paddle
-		if (ball.loc.y <= paddle.loc.y + paddle.paddleH && ball.loc.y + ball.radius * 2 >= paddle.loc.y) {
+		if (ball.loc.y <= paddle.loc.y + paddle.paddleH && ball.loc.y + ball.radius * 2 >= paddle.loc.y && ball.vel.y > 0) {
 			if (ball.loc.x + ball.radius < paddle.loc.x && ball.loc.x + ball.radius * 2 >= paddle.loc.x)
 				ball.vel.x = -abs(ball.vel.x);
 			else if(ball.loc.x <= paddle.loc.x + paddle.paddleW && ball.loc.x + ball.radius > paddle.loc.x + paddle.paddleW)
 				ball.vel.x = abs(ball.vel.x);
 		}
-		if (ball.loc.y + ball.radius * 2 <= paddle.loc.y && ball.loc.y > paddle.loc.y + paddle.paddleH) {
+		if (ball.loc.y + ball.radius * 2 <= paddle.loc.y && ball.loc.y > paddle.loc.y + paddle.paddleH && ball.vel.y > 0) {
 			if (ball.loc.x + ball.radius * 2 >= paddle.loc.x)
 				ball.vel.x = -abs(ball.vel.x);
 			else if (ball.loc.x <= paddle.loc.x + paddle.paddleW)
 				ball.vel.x = abs(ball.vel.x);
+		}
+		//bounce off bricks
+		for (int i = 0; i < 72; i++) {
+			if (ball.loc.x + ball.radius <= bricks[i].loc.x + bricks[i].size.x && ball.loc.x + ball.radius >= bricks[i].loc.x) {
+				if (ball.loc.y <= bricks[i].loc.y + bricks[i].size.y && ball.loc.y + ball.radius * 2 > bricks[i].loc.y && ball.vel.y < 0) {
+					ball.vel.y = abs(ball.vel.y);
+					bricks[i].loc.x = 0;
+					bricks[i].loc.y = -100;
+				}
+				else if (ball.loc.y < bricks[i].loc.y + bricks[i].size.y && ball.loc.y + ball.radius * 2 >= bricks[i].loc.y &&ball.vel.y > 0) {
+					ball.vel.y = -abs(ball.vel.y);
+					bricks[i].loc.x = 0;
+					bricks[i].loc.y = -100;
+				}	
+			}
+			if (ball.loc.y + ball.radius <= bricks[i].loc.y + bricks[i].size.y && ball.loc.y + ball.radius >= bricks[i].loc.y) {
+				if (ball.loc.x + ball.radius * 2 >= bricks[i].loc.x && ball.loc.x < bricks[i].loc.x && ball.vel.x > 0) {
+					ball.vel.x = -abs(ball.vel.x);
+					bricks[i].loc.x = 0;
+					bricks[i].loc.y = -100;
+				}
+				else if (ball.loc.x <= bricks[i].loc.x + bricks[i].size.x && ball.loc.x + ball.radius * 2 > bricks[i].loc.x + bricks[i].size.x && ball.vel.x < 0) {
+					ball.vel.x = abs(ball.vel.x);
+					bricks[i].loc.x = 0;
+					bricks[i].loc.y = -100;
+				}
+			}
 		}
 		ball.loc.x += ball.vel.x * dt;
 		ball.loc.y += ball.vel.y * dt;
@@ -188,5 +225,4 @@ void render_frame()
 	window.draw(ball.SpawnBall());
 	for (int i = 0; i < livesLeft; i++)
 		window.draw(lives[i].SpawnLives());
-	
 }
