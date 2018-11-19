@@ -8,3 +8,11 @@
 #include "Bricks.h"
 
 using namespace sf;
+
+RectangleShape Bricks::SpawnBricks(Texture &brick) {
+	RectangleShape shape;
+	shape.setPosition(loc);
+	shape.setSize(size);
+	shape.setTexture(&brick);
+	return shape;
+}

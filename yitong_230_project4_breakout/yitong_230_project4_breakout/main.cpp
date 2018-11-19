@@ -21,9 +21,11 @@ RenderWindow window;
 Paddle paddle;
 Ball ball;
 Lives lives[10];
+Bricks bricks[72];
 bool startBall;
 float randStart;
 int livesLeft;
+int level;
 
 int main()
 {
@@ -44,6 +46,9 @@ int main()
 	restart.setPosition(70, 55);
 	restart.setFillColor(Color::Yellow);
 	restart.setStyle(Text::Italic);
+
+	Texture brickArt;
+	brickArt.loadFromFile("brick.png");
 	
 	Clock clock;
 	ball.loc.y = paddle.loc.y - ball.radius * 2;
@@ -53,6 +58,13 @@ int main()
 	startBall = false;
 	for (int i = 0; i < 10; i++)
 		lives[i].loc.x = 10 + lives[i].space * i;
+	level = 1;
+	for (int i = 0; i < 8; i++) {
+		for (int j = 0; j < 9; j++) {
+			bricks[i * 9 + j].loc.x = j * 100;
+			bricks[i * 9 + j].loc.y = 50 + i * 50;
+		}
+	}
 
 	while (window.isOpen())
 	{
@@ -64,10 +76,12 @@ int main()
 		}
 
 		float dt = clock.restart().asSeconds();
-		livesLeft = 1;
+		livesLeft = 3;
 
 		update_state(dt);
 		render_frame();
+		for (int i = 0; i < 72; i++)
+			window.draw(bricks[i].SpawnBricks(brickArt));
 		window.display();
 		if (livesLeft <= 0) {
 			RenderWindow lost(VideoMode(400, 100), "GAME OVER!");
@@ -174,4 +188,5 @@ void render_frame()
 	window.draw(ball.SpawnBall());
 	for (int i = 0; i < livesLeft; i++)
 		window.draw(lives[i].SpawnLives());
+	
 }

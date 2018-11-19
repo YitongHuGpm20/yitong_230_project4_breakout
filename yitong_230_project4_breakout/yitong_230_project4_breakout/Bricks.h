@@ -12,6 +12,9 @@ using namespace sf;
 class Bricks
 {
 public:
-	
+	Vector2f size = Vector2f(100, 50);
+	Vector2f loc;
+
+	RectangleShape SpawnBricks(Texture&);
 };
 
