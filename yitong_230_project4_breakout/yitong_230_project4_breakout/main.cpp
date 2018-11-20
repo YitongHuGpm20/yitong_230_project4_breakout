@@ -87,6 +87,12 @@ int main()
 
 	Texture brickArt;
 	brickArt.loadFromFile("brick.png");
+	Texture stoneArt;
+	stoneArt.loadFromFile("stone.png");
+	Texture zoomArt;
+	zoomArt.loadFromFile("zoom.png");
+	Texture bombArt;
+	bombArt.loadFromFile("bomb.png");
 
 	SoundBuffer paddlebuffer;
 	paddlebuffer.loadFromFile("breakout_paddle.wav");
@@ -138,6 +144,8 @@ int main()
 		for (int j = 0; j < 9; j++) {
 			bricks[i * 9 + j].loc.x = j * 100;
 			bricks[i * 9 + j].loc.y = 50 + i * 50;
+			bricks[i * 9 + j].health = 3;
+			bricks[i * 9 + j].z = 1;
 		}
 	}
 
@@ -155,8 +163,25 @@ int main()
 		//display
 		update_state(dt);
 		render_frame();
-		for (int i = 0; i < 72; i++)
-			window.draw(bricks[i].SpawnBricks(brickArt));
+		for (int i = 0; i < 72; i++) {
+			if (i == 2 || i == 6 || i == 10 || i == 12 || i == 14 || i == 16 || i == 19 || i == 21 || i == 23 || i == 25 || i == 28 || i == 34) {
+				window.draw(bricks[i].SpawnZoom(zoomArt));
+				bricks[i].type = 3;
+			}
+			else if (i == 31 || i == 40 || i == 49 || i == 58 || i == 67) {
+				window.draw(bricks[i].SpawnBricks(stoneArt));
+				bricks[i].type = 2;
+			}
+			else if (i == 38 || i == 42) {
+				window.draw(bricks[i].SpawnBricks(bombArt));
+				bricks[i].type = 4;
+			}
+			else {
+				window.draw(bricks[i].SpawnBricks(brickArt));
+				bricks[i].type = 1;
+			}
+		}
+			
 		printlevel = "LEVEL: " + toString<int>(level);
 		leveltext.setString(printlevel);
 		window.draw(leveltext);
@@ -322,43 +347,130 @@ void update_state(float dt)
 		//bounce off bricks
 		for (int i = 0; i < 72; i++) {
 			if (ball.loc.x + ball.radius <= bricks[i].loc.x + bricks[i].size.x && ball.loc.x + ball.radius >= bricks[i].loc.x) {
-				if (ball.loc.y <= bricks[i].loc.y + bricks[i].size.y && ball.loc.y + ball.radius * 2 > bricks[i].loc.y && ball.vel.y < 0) {
+				if (ball.loc.y <= bricks[i].loc.y + bricks[i].size.y && ball.loc.y + ball.radius * 2 > bricks[i].loc.y + bricks[i].size.y && ball.vel.y < 0) {
 					ball.vel.y = abs(ball.vel.y);
-					bricks[i].loc.x = 0;
-					bricks[i].loc.y = -100;
-					hitBricks++;
-					score += 100 + combo * 50;
-					combo++;
 					playdestroy = true;
+					if (bricks[i].type == 1 || (bricks[i].type == 3 && bricks[i].health == 1)) {
+						bricks[i].loc.x = 0;
+						bricks[i].loc.y = -100;
+						hitBricks++;
+						score += 100 + combo * 50;
+						combo++;
+					}
+					else if (bricks[i].type == 3 && bricks[i].health > 1) {
+						if (bricks[i].health == 3) {
+							bricks[i].loc.x += 10;
+							bricks[i].loc.y += 5;
+						}
+						else if (bricks[i].health == 2) {
+							bricks[i].loc.x += 8;
+							bricks[i].loc.y += 4;
+						}
+						bricks[i].health--;
+						bricks[i].z = bricks[i].z * 0.8;
+					}
+					else if (bricks[i].type == 4) {
+						bricks[i].loc.x = 0;
+						bricks[i].loc.y = -100;
+						hitBricks++;
+						score += 100 + combo * 50;
+						combo++;
+						if (i > 9) {
+							bricks[i - 9].loc.x = 0;
+							bricks[i - 9].loc.y = -100;
+							hitBricks++;
+							score += 100 + combo * 50;
+						}
+						if (i < 64) {
+							bricks[i + 9].loc.x = 0;
+							bricks[i + 9].loc.y = -100;
+							hitBricks++;
+							score += 100 + combo * 50;
+						}
+						if (i % 9 != 1) {
+							bricks[i - 1].loc.x = 0;
+							bricks[i - 1].loc.y = -100;
+							hitBricks++;
+							score += 100 + combo * 50;
+						}
+						if (i % 9 != 0) {
+							bricks[i + 1].loc.x = 0;
+							bricks[i + 1].loc.y = -100;
+							hitBricks++;
+							score += 100 + combo * 50;
+						}
+					}
 				}
-				else if (ball.loc.y < bricks[i].loc.y + bricks[i].size.y && ball.loc.y + ball.radius * 2 >= bricks[i].loc.y &&ball.vel.y > 0) {
+				else if (ball.loc.y < bricks[i].loc.y && ball.loc.y + ball.radius * 2 >= bricks[i].loc.y &&ball.vel.y > 0) {
 					ball.vel.y = -abs(ball.vel.y);
-					bricks[i].loc.x = 0;
-					bricks[i].loc.y = -100;
-					hitBricks++;
-					score += 100 + combo * 50;
-					combo++;
 					playdestroy = true;
+					if (bricks[i].type == 1 || (bricks[i].type == 3 && bricks[i].health == 1)) {
+						bricks[i].loc.x = 0;
+						bricks[i].loc.y = -100;
+						hitBricks++;
+						score += 100 + combo * 50;
+						combo++;
+					}
+					else if (bricks[i].type == 3 && bricks[i].health > 1) {
+						if (bricks[i].health == 3) {
+							bricks[i].loc.x += 10;
+							bricks[i].loc.y += 5;
+						}
+						else if (bricks[i].health == 2) {
+							bricks[i].loc.x += 8;
+							bricks[i].loc.y += 4;
+						}
+						bricks[i].health--;
+						bricks[i].z = bricks[i].z * 0.8;
+					}
 				}	
 			}
 			if (ball.loc.y + ball.radius <= bricks[i].loc.y + bricks[i].size.y && ball.loc.y + ball.radius >= bricks[i].loc.y) {
 				if (ball.loc.x + ball.radius * 2 >= bricks[i].loc.x && ball.loc.x < bricks[i].loc.x && ball.vel.x > 0) {
 					ball.vel.x = -abs(ball.vel.x);
-					bricks[i].loc.x = 0;
-					bricks[i].loc.y = -100;
-					hitBricks++;
-					score += 100 + combo * 50;
-					combo++;
 					playdestroy = true;
+					if (bricks[i].type == 1 || (bricks[i].type == 3 && bricks[i].health == 1)) {
+						bricks[i].loc.x = 0;
+						bricks[i].loc.y = -100;
+						hitBricks++;
+						score += 100 + combo * 50;
+						combo++;
+					}
+					else if (bricks[i].type == 3 && bricks[i].health > 1) {
+						if (bricks[i].health == 3) {
+							bricks[i].loc.x += 10;
+							bricks[i].loc.y += 5;
+						}
+						else if (bricks[i].health == 2) {
+							bricks[i].loc.x += 8;
+							bricks[i].loc.y += 4;
+						}
+						bricks[i].health--;
+						bricks[i].z = bricks[i].z * 0.8;
+					}
 				}
 				else if (ball.loc.x <= bricks[i].loc.x + bricks[i].size.x && ball.loc.x + ball.radius * 2 > bricks[i].loc.x + bricks[i].size.x && ball.vel.x < 0) {
 					ball.vel.x = abs(ball.vel.x);
-					bricks[i].loc.x = 0;
-					bricks[i].loc.y = -100;
-					hitBricks++;
-					score += 100 + combo * 50;
-					combo++;
 					playdestroy = true;
+					if (bricks[i].type == 1 || (bricks[i].type == 3 && bricks[i].health == 1)) {
+						bricks[i].loc.x = 0;
+						bricks[i].loc.y = -100;
+						hitBricks++;
+						score += 100 + combo * 50;
+						combo++;
+					}
+					else if (bricks[i].type == 3 && bricks[i].health > 1) {
+						if (bricks[i].health == 3) {
+							bricks[i].loc.x += 10;
+							bricks[i].loc.y += 5;
+						}
+						else if (bricks[i].health == 2) {
+							bricks[i].loc.x += 8;
+							bricks[i].loc.y += 4;
+						}
+						bricks[i].health--;
+						bricks[i].z = bricks[i].z * 0.8;
+					}
 				}
 			}
 		}
@@ -380,7 +492,7 @@ void update_state(float dt)
 	}
 
 	//finish level
-	if (hitBricks == 72) {
+	if (hitBricks == 72 - 5) {
 		if(livesLeft < 10)
 			livesLeft++;
 		startBall = false;

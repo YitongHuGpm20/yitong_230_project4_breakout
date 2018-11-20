@@ -14,7 +14,10 @@ class Bricks
 public:
 	Vector2f size = Vector2f(100, 50);
 	Vector2f loc;
+	int type;
+	int health;
+	float z;
 
 	RectangleShape SpawnBricks(Texture&);
+	RectangleShape SpawnZoom(Texture&);
 };
-
