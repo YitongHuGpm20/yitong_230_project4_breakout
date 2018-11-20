@@ -18,7 +18,7 @@
 using namespace sf;
 using namespace std;
 
-void update_state(float dt);
+void update_state(float);
 void render_frame();
 
 template <typename T>
@@ -42,6 +42,14 @@ int level;
 int hitBricks;
 int score;
 int combo;
+bool playpaddle = false;
+bool playdestroy = false;
+bool playdemage = false;
+bool playwall = false;
+bool playlevel = false;
+bool playwin = false;
+bool playloselife = false;
+bool playlost = false;
 
 int main()
 {
@@ -79,6 +87,39 @@ int main()
 
 	Texture brickArt;
 	brickArt.loadFromFile("brick.png");
+
+	SoundBuffer paddlebuffer;
+	paddlebuffer.loadFromFile("breakout_paddle.wav");
+	Sound paddlesound;
+	paddlesound.setBuffer(paddlebuffer);
+	SoundBuffer destroybuffer;
+	destroybuffer.loadFromFile("breakout_brick.wav");
+	Sound destroysound;
+	destroysound.setBuffer(destroybuffer);
+	SoundBuffer demagebuffer;
+	demagebuffer.loadFromFile("breakout_demage.wav");
+	Sound demagesound;
+	demagesound.setBuffer(demagebuffer);
+	SoundBuffer wallbuffer;
+	wallbuffer.loadFromFile("breakout_wall.wav");
+	Sound wallsound;
+	wallsound.setBuffer(wallbuffer);
+	SoundBuffer levelbuffer;
+	levelbuffer.loadFromFile("breakout_level.wav");
+	Sound levelsound;
+	levelsound.setBuffer(levelbuffer);
+	SoundBuffer winbuffer;
+	winbuffer.loadFromFile("breakout_win.wav");
+	Sound winsound;
+	winsound.setBuffer(winbuffer);
+	SoundBuffer loselifebuffer;
+	loselifebuffer.loadFromFile("breakout_loselife.wav");
+	Sound loselifesound;
+	loselifesound.setBuffer(loselifebuffer);
+	SoundBuffer lostbuffer;
+	lostbuffer.loadFromFile("breakout_lost.wav");
+	Sound lostsound;
+	lostsound.setBuffer(lostbuffer);
 	
 	Clock clock;
 	ball.loc.y = paddle.loc.y - ball.radius * 2;
@@ -124,8 +165,39 @@ int main()
 		window.draw(scoretext);
 		window.display();
 		
+		//play sounds;
+		if (playpaddle) {
+			paddlesound.play();
+			playpaddle = false;
+		}
+		if (playdestroy) {
+			destroysound.play();
+			playdestroy = false;
+		}
+		if (playdemage) {
+			demagesound.play();
+			playdemage = false;
+		}
+		if (playwall) {
+			wallsound.play();
+			playwall = false;
+		}
+		if (playlevel) {
+			levelsound.play();
+			playlevel = false;
+		}
+		if (playwin) {
+			winsound.play();
+			playwin = false;
+		}
+		if (playloselife) {
+			loselifesound.play();
+			playloselife = false;
+		}
+
 		//restart game
 		if (livesLeft <= 0) {
+			lostsound.play();
 			RenderWindow lost(VideoMode(400, 100), "GAME OVER!");
 			while (lost.isOpen()) {
 				Event eventl;
@@ -171,43 +243,55 @@ void update_state(float dt)
 		startBall = true;
 		ball.vel.x = ball.speed * (randStart / 80);
 		ball.vel.y = -abs(sqrtf(ball.speed * ball.speed - ball.vel.x * ball.vel.x));
+		playpaddle = true;
 	}
 
 	//ball movement
 	if (startBall) {
 		//bounce on wall
-		if (ball.loc.y < 0 && ball.vel.y < 0)
+		if (ball.loc.y < 0 && ball.vel.y < 0) {
 			ball.vel.y = -ball.vel.y;
-		if (ball.loc.x < 0 && ball.vel.x < 0)
+			playwall = true;
+		}
+		if (ball.loc.x < 0 && ball.vel.x < 0) {
 			ball.vel.x = abs(ball.vel.x);
-		if (ball.loc.x + ball.radius * 2 > 900 && ball.vel.x > 0)
+			playwall = true;
+		}
+		if (ball.loc.x + ball.radius * 2 > 900 && ball.vel.x > 0) {
 			ball.vel.x = -abs(ball.vel.x);
+			playwall = true;
+		}
 		//bounce on paddle
 		if (ball.loc.y + 2 * ball.radius >= paddle.loc.y && ball.loc.y < paddle.loc.y && ball.vel.y > 0) {
 			if (ball.loc.x + ball.radius >= paddle.loc.x + 60 && ball.loc.x + ball.radius <= paddle.loc.x + 80) {
 				ball.vel.x = -ball.speed * 20 / 80;
 				ball.vel.y = -abs(sqrtf(ball.speed * ball.speed - ball.vel.x * ball.vel.x));
 				combo = 0;
+				playpaddle = true;
 			}
 			else if (ball.loc.x + ball.radius > paddle.loc.x + 80 && ball.loc.x + ball.radius <= paddle.loc.x + 100) {
 				ball.vel.x = ball.speed * 20 / 80;
 				ball.vel.y = -abs(sqrtf(ball.speed * ball.speed - ball.vel.x * ball.vel.x));
 				combo = 0;
+				playpaddle = true;
 			}
 			else if (ball.loc.x + ball.radius >= paddle.loc.x && ball.loc.x + ball.radius <= paddle.loc.x + 20) {
 				ball.vel.x = -ball.speed * 60 / 80;
 				ball.vel.y = -abs(sqrtf(ball.speed * ball.speed - ball.vel.x * ball.vel.x));
 				combo = 0;
+				playpaddle = true;
 			}
 			else if (ball.loc.x + ball.radius >= paddle.loc.x + 140 && ball.loc.x + ball.radius <= paddle.loc.x + 160) {
 				ball.vel.x = ball.speed * 60 / 80;
 				ball.vel.y = -abs(sqrtf(ball.speed * ball.speed - ball.vel.x * ball.vel.x));
 				combo = 0;
+				playpaddle = true;
 			}
 			else if (ball.loc.x + ball.radius >= paddle.loc.x && ball.loc.x + ball.radius <= paddle.loc.x + paddle.paddleW) {
 				ball.vel.x = ball.speed * ((ball.loc.x + ball.radius - paddle.loc.x - paddle.paddleW / 2) / 80);
 				ball.vel.y = -abs(sqrtf(ball.speed * ball.speed - ball.vel.x * ball.vel.x));
 				combo = 0;
+				playpaddle = true;
 			}
 		}
 		//bounce on side of paddle
@@ -215,20 +299,24 @@ void update_state(float dt)
 			if (ball.loc.x + ball.radius < paddle.loc.x && ball.loc.x + ball.radius * 2 >= paddle.loc.x) {
 				ball.vel.x = -abs(ball.vel.x);
 				combo = 0;
+				playpaddle = true;
 			}
 			else if (ball.loc.x <= paddle.loc.x + paddle.paddleW && ball.loc.x + ball.radius > paddle.loc.x + paddle.paddleW) {
 				ball.vel.x = abs(ball.vel.x);
 				combo = 0;
+				playpaddle = true;
 			}
 		}
 		if (ball.loc.y + ball.radius * 2 <= paddle.loc.y && ball.loc.y > paddle.loc.y + paddle.paddleH && ball.vel.y > 0) {
 			if (ball.loc.x + ball.radius * 2 >= paddle.loc.x) {
 				ball.vel.x = -abs(ball.vel.x);
 				combo = 0;
+				playpaddle = true;
 			}
 			else if (ball.loc.x <= paddle.loc.x + paddle.paddleW) {
 				ball.vel.x = abs(ball.vel.x);
 				combo = 0;
+				playpaddle = true;
 			}
 		}
 		//bounce off bricks
@@ -241,6 +329,7 @@ void update_state(float dt)
 					hitBricks++;
 					score += 100 + combo * 50;
 					combo++;
+					playdestroy = true;
 				}
 				else if (ball.loc.y < bricks[i].loc.y + bricks[i].size.y && ball.loc.y + ball.radius * 2 >= bricks[i].loc.y &&ball.vel.y > 0) {
 					ball.vel.y = -abs(ball.vel.y);
@@ -249,6 +338,7 @@ void update_state(float dt)
 					hitBricks++;
 					score += 100 + combo * 50;
 					combo++;
+					playdestroy = true;
 				}	
 			}
 			if (ball.loc.y + ball.radius <= bricks[i].loc.y + bricks[i].size.y && ball.loc.y + ball.radius >= bricks[i].loc.y) {
@@ -259,6 +349,7 @@ void update_state(float dt)
 					hitBricks++;
 					score += 100 + combo * 50;
 					combo++;
+					playdestroy = true;
 				}
 				else if (ball.loc.x <= bricks[i].loc.x + bricks[i].size.x && ball.loc.x + ball.radius * 2 > bricks[i].loc.x + bricks[i].size.x && ball.vel.x < 0) {
 					ball.vel.x = abs(ball.vel.x);
@@ -267,6 +358,7 @@ void update_state(float dt)
 					hitBricks++;
 					score += 100 + combo * 50;
 					combo++;
+					playdestroy = true;
 				}
 			}
 		}
@@ -283,6 +375,8 @@ void update_state(float dt)
 		ball.loc.x = paddle.loc.x + paddle.paddleW / 2 + randStart;
 		startBall = false;
 		combo = 0;
+		if(livesLeft > 0)
+			playloselife = true;
 	}
 
 	//finish level
@@ -303,6 +397,7 @@ void update_state(float dt)
 		ball.loc.y = paddle.loc.y - ball.radius * 2;
 		hitBricks = 0;
 		ball.speed += 50;
+		playlevel = true;
 	}
 }
 
