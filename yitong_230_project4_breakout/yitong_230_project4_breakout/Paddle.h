@@ -17,6 +17,6 @@ public:
 	Vector2f loc = Vector2f((900 - paddleW) / 2, 900 - paddleH - 40);
 	Vector2f vel = Vector2f(400, 0);
 
-	RectangleShape SpawnPaddle();
+	RectangleShape SpawnPaddle(Texture&);
 };
 

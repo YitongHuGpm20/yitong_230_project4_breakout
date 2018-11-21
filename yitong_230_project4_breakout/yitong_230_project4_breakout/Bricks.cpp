@@ -19,10 +19,8 @@ RectangleShape Bricks::SpawnBricks(Texture &brick) {
 
 RectangleShape Bricks::SpawnZoom(Texture &zoom) {
 	RectangleShape shape;
-	float newx = size.x * z;
-	float newy = size.y * z;
 	shape.setPosition(loc);
-	shape.setSize(Vector2f(newx, newy));
+	shape.setSize(size);
 	shape.setTexture(&zoom);
 	return shape;
 }

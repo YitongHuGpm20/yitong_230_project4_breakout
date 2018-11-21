@@ -17,6 +17,6 @@ public:
 	float speed = 400;
 	Vector2f vel = Vector2f(0, -speed);
 
-	CircleShape SpawnBall();
+	CircleShape SpawnBall(Texture&);
 };
 

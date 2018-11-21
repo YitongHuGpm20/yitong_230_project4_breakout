@@ -19,7 +19,7 @@ using namespace sf;
 using namespace std;
 
 void update_state(float);
-void render_frame();
+void render_frame(RectangleShape, Texture&, Texture&);
 
 template <typename T>
 string toString(T arg) {
@@ -93,6 +93,12 @@ int main()
 	zoomArt.loadFromFile("zoom.png");
 	Texture bombArt;
 	bombArt.loadFromFile("bomb.png");
+	Texture backgroundArt;
+	backgroundArt.loadFromFile("starsky.png");
+	Texture ballArt;
+	ballArt.loadFromFile("starball.png");
+	Texture paddleArt;
+	paddleArt.loadFromFile("paddle.png");
 
 	SoundBuffer paddlebuffer;
 	paddlebuffer.loadFromFile("breakout_paddle.wav");
@@ -128,6 +134,10 @@ int main()
 	lostsound.setBuffer(lostbuffer);
 	
 	Clock clock;
+	RectangleShape background;
+	background.setTexture(&backgroundArt);
+	background.setSize(Vector2f(900, 900));
+	background.setPosition(Vector2f(0, 0));
 	ball.loc.y = paddle.loc.y - ball.radius * 2;
 	srand(time(0));
 	randStart = rand() % 100 - 60;
@@ -145,7 +155,6 @@ int main()
 			bricks[i * 9 + j].loc.x = j * 100;
 			bricks[i * 9 + j].loc.y = 50 + i * 50;
 			bricks[i * 9 + j].health = 3;
-			bricks[i * 9 + j].z = 1;
 		}
 	}
 
@@ -162,23 +171,61 @@ int main()
 
 		//display
 		update_state(dt);
-		render_frame();
+		render_frame(background, paddleArt, ballArt);
 		for (int i = 0; i < 72; i++) {
-			if (i == 2 || i == 6 || i == 10 || i == 12 || i == 14 || i == 16 || i == 19 || i == 21 || i == 23 || i == 25 || i == 28 || i == 34) {
-				window.draw(bricks[i].SpawnZoom(zoomArt));
-				bricks[i].type = 3;
+			if (level == 1) {
+				if (i == 2 || i == 6 || i == 10 || i == 12 || i == 14 || i == 16 || i == 19 || i == 21 || i == 23 || i == 25 || i == 28 || i == 34) {
+					window.draw(bricks[i].SpawnZoom(zoomArt));
+					bricks[i].type = 3;
+				}
+				else if (i == 31 || i == 40 || i == 49 || i == 58 || i == 67) {
+					window.draw(bricks[i].SpawnBricks(stoneArt));
+					bricks[i].type = 2;
+				}
+				else if (i == 38 || i == 42) {
+					window.draw(bricks[i].SpawnBricks(bombArt));
+					bricks[i].type = 4;
+				}
+				else {
+					window.draw(bricks[i].SpawnBricks(brickArt));
+					bricks[i].type = 1;
+				}
 			}
-			else if (i == 31 || i == 40 || i == 49 || i == 58 || i == 67) {
-				window.draw(bricks[i].SpawnBricks(stoneArt));
-				bricks[i].type = 2;
+			else if (level == 2) {
+				if (i == 1 || i == 7 || i == 11 || i == 15) {
+					window.draw(bricks[i].SpawnBricks(bombArt));
+					bricks[i].type = 4;
+				}
+				else if (i == 40 || i == 48 || i == 50 || i == 57 || i == 59 || i == 67) {
+					window.draw(bricks[i].SpawnZoom(zoomArt));
+					bricks[i].type = 3;
+				}
+				else if (i == 21 || i == 23 || i == 30 || i == 32) {
+					window.draw(bricks[i].SpawnBricks(stoneArt));
+					bricks[i].type = 2;
+				}
+				else {
+					window.draw(bricks[i].SpawnBricks(brickArt));
+					bricks[i].type = 1;
+				}
 			}
-			else if (i == 38 || i == 42) {
-				window.draw(bricks[i].SpawnBricks(bombArt));
-				bricks[i].type = 4;
-			}
-			else {
-				window.draw(bricks[i].SpawnBricks(brickArt));
-				bricks[i].type = 1;
+			else if (level == 3) {
+				if (i == 21 || i == 23 || i == 39 || i == 41 || i == 67) {
+					window.draw(bricks[i].SpawnBricks(bombArt));
+					bricks[i].type = 4;
+				}
+				else if (i == 12 || i == 14 || i == 30 || i == 32 || i == 48 || i == 50 || i == 57 || i == 59) {
+					window.draw(bricks[i].SpawnZoom(zoomArt));
+					bricks[i].type = 3;
+				}
+				else if (i == 2 || i == 3 || i == 4 || i == 5 || i == 6 || i == 65 || i == 66 || i == 68 || i == 69) {
+					window.draw(bricks[i].SpawnBricks(stoneArt));
+					bricks[i].type = 2;
+				}
+				else {
+					window.draw(bricks[i].SpawnBricks(brickArt));
+					bricks[i].type = 1;
+				}
 			}
 		}
 			
@@ -239,11 +286,19 @@ int main()
 					for (int j = 0; j < 9; j++) {
 						bricks[i * 9 + j].loc.x = j * 100;
 						bricks[i * 9 + j].loc.y = 50 + i * 50;
+						bricks[i * 9 + j].health = 3;
+						bricks[i * 9 + j].size.x = 100;
+						bricks[i * 9 + j].size.y = 50;
 					}
 				}
 				paddle.loc = Vector2f((900 - paddle.paddleW) / 2, 900 - paddle.paddleH - 40);
 				randStart = rand() % 100 - 60;
 				ball.loc.x = 900 / 2 - ball.radius + randStart;
+				level = 1;
+				score = 0;
+				hitBricks = 0;
+				combo = 0;
+				startBall = false;
 			}
 		}
 	}
@@ -349,7 +404,10 @@ void update_state(float dt)
 			if (ball.loc.x + ball.radius <= bricks[i].loc.x + bricks[i].size.x && ball.loc.x + ball.radius >= bricks[i].loc.x) {
 				if (ball.loc.y <= bricks[i].loc.y + bricks[i].size.y && ball.loc.y + ball.radius * 2 > bricks[i].loc.y + bricks[i].size.y && ball.vel.y < 0) {
 					ball.vel.y = abs(ball.vel.y);
-					playdestroy = true;
+					if (bricks[i].type == 3)
+						playdemage = true;
+					else
+						playdestroy = true;
 					if (bricks[i].type == 1 || (bricks[i].type == 3 && bricks[i].health == 1)) {
 						bricks[i].loc.x = 0;
 						bricks[i].loc.y = -100;
@@ -367,7 +425,8 @@ void update_state(float dt)
 							bricks[i].loc.y += 4;
 						}
 						bricks[i].health--;
-						bricks[i].z = bricks[i].z * 0.8;
+						bricks[i].size.x = bricks[i].size.x * 0.8;
+						bricks[i].size.y = bricks[i].size.y * 0.8;
 					}
 					else if (bricks[i].type == 4) {
 						bricks[i].loc.x = 0;
@@ -403,7 +462,10 @@ void update_state(float dt)
 				}
 				else if (ball.loc.y < bricks[i].loc.y && ball.loc.y + ball.radius * 2 >= bricks[i].loc.y &&ball.vel.y > 0) {
 					ball.vel.y = -abs(ball.vel.y);
-					playdestroy = true;
+					if (bricks[i].type == 3)
+						playdemage = true;
+					else
+						playdestroy = true;
 					if (bricks[i].type == 1 || (bricks[i].type == 3 && bricks[i].health == 1)) {
 						bricks[i].loc.x = 0;
 						bricks[i].loc.y = -100;
@@ -421,14 +483,49 @@ void update_state(float dt)
 							bricks[i].loc.y += 4;
 						}
 						bricks[i].health--;
-						bricks[i].z = bricks[i].z * 0.8;
+						bricks[i].size.x = bricks[i].size.x * 0.8;
+						bricks[i].size.y = bricks[i].size.y * 0.8;
 					}
-				}	
+					else if (bricks[i].type == 4) {
+						bricks[i].loc.x = 0;
+						bricks[i].loc.y = -100;
+						hitBricks++;
+						score += 100 + combo * 50;
+						combo++;
+						if (i > 9) {
+							bricks[i - 9].loc.x = 0;
+							bricks[i - 9].loc.y = -100;
+							hitBricks++;
+							score += 100 + combo * 50;
+						}
+						if (i < 64) {
+							bricks[i + 9].loc.x = 0;
+							bricks[i + 9].loc.y = -100;
+							hitBricks++;
+							score += 100 + combo * 50;
+						}
+						if (i % 9 != 1) {
+							bricks[i - 1].loc.x = 0;
+							bricks[i - 1].loc.y = -100;
+							hitBricks++;
+							score += 100 + combo * 50;
+						}
+						if (i % 9 != 0) {
+							bricks[i + 1].loc.x = 0;
+							bricks[i + 1].loc.y = -100;
+							hitBricks++;
+							score += 100 + combo * 50;
+						}
+					}
+				}
 			}
 			if (ball.loc.y + ball.radius <= bricks[i].loc.y + bricks[i].size.y && ball.loc.y + ball.radius >= bricks[i].loc.y) {
 				if (ball.loc.x + ball.radius * 2 >= bricks[i].loc.x && ball.loc.x < bricks[i].loc.x && ball.vel.x > 0) {
 					ball.vel.x = -abs(ball.vel.x);
-					playdestroy = true;
+					if (bricks[i].type == 3)
+						playdemage = true;
+					else
+						playdestroy = true;
 					if (bricks[i].type == 1 || (bricks[i].type == 3 && bricks[i].health == 1)) {
 						bricks[i].loc.x = 0;
 						bricks[i].loc.y = -100;
@@ -446,12 +543,47 @@ void update_state(float dt)
 							bricks[i].loc.y += 4;
 						}
 						bricks[i].health--;
-						bricks[i].z = bricks[i].z * 0.8;
+						bricks[i].size.x = bricks[i].size.x * 0.8;
+						bricks[i].size.y = bricks[i].size.y * 0.8;
+					}
+					else if (bricks[i].type == 4) {
+						bricks[i].loc.x = 0;
+						bricks[i].loc.y = -100;
+						hitBricks++;
+						score += 100 + combo * 50;
+						combo++;
+						if (i > 9) {
+							bricks[i - 9].loc.x = 0;
+							bricks[i - 9].loc.y = -100;
+							hitBricks++;
+							score += 100 + combo * 50;
+						}
+						if (i < 64) {
+							bricks[i + 9].loc.x = 0;
+							bricks[i + 9].loc.y = -100;
+							hitBricks++;
+							score += 100 + combo * 50;
+						}
+						if (i % 9 != 1) {
+							bricks[i - 1].loc.x = 0;
+							bricks[i - 1].loc.y = -100;
+							hitBricks++;
+							score += 100 + combo * 50;
+						}
+						if (i % 9 != 0) {
+							bricks[i + 1].loc.x = 0;
+							bricks[i + 1].loc.y = -100;
+							hitBricks++;
+							score += 100 + combo * 50;
+						}
 					}
 				}
 				else if (ball.loc.x <= bricks[i].loc.x + bricks[i].size.x && ball.loc.x + ball.radius * 2 > bricks[i].loc.x + bricks[i].size.x && ball.vel.x < 0) {
 					ball.vel.x = abs(ball.vel.x);
-					playdestroy = true;
+					if (bricks[i].type == 3)
+						playdemage = true;
+					else
+						playdestroy = true;
 					if (bricks[i].type == 1 || (bricks[i].type == 3 && bricks[i].health == 1)) {
 						bricks[i].loc.x = 0;
 						bricks[i].loc.y = -100;
@@ -469,7 +601,39 @@ void update_state(float dt)
 							bricks[i].loc.y += 4;
 						}
 						bricks[i].health--;
-						bricks[i].z = bricks[i].z * 0.8;
+						bricks[i].size.x = bricks[i].size.x * 0.8;
+						bricks[i].size.y = bricks[i].size.y * 0.8;
+					}
+					else if (bricks[i].type == 4) {
+						bricks[i].loc.x = 0;
+						bricks[i].loc.y = -100;
+						hitBricks++;
+						score += 100 + combo * 50;
+						combo++;
+						if (i > 9) {
+							bricks[i - 9].loc.x = 0;
+							bricks[i - 9].loc.y = -100;
+							hitBricks++;
+							score += 100 + combo * 50;
+						}
+						if (i < 64) {
+							bricks[i + 9].loc.x = 0;
+							bricks[i + 9].loc.y = -100;
+							hitBricks++;
+							score += 100 + combo * 50;
+						}
+						if (i % 9 != 1) {
+							bricks[i - 1].loc.x = 0;
+							bricks[i - 1].loc.y = -100;
+							hitBricks++;
+							score += 100 + combo * 50;
+						}
+						if (i % 9 != 0) {
+							bricks[i + 1].loc.x = 0;
+							bricks[i + 1].loc.y = -100;
+							hitBricks++;
+							score += 100 + combo * 50;
+						}
 					}
 				}
 			}
@@ -492,15 +656,25 @@ void update_state(float dt)
 	}
 
 	//finish level
-	if (hitBricks == 72 - 5) {
+	if ((level == 1 && hitBricks == 71) || (level == 2 && hitBricks == 75) || (level == 3 && hitBricks == 71)) {
 		if(livesLeft < 10)
 			livesLeft++;
 		startBall = false;
-		level++;
+		if (level < 3) {
+			playlevel = true;
+			level++;
+		}
+		else {
+			playwin = true;
+			level = 1;
+		}
 		for (int i = 0; i < 8; i++) {
 			for (int j = 0; j < 9; j++) {
 				bricks[i * 9 + j].loc.x = j * 100;
 				bricks[i * 9 + j].loc.y = 50 + i * 50;
+				bricks[i * 9 + j].health = 3;
+				bricks[i * 9 + j].size.x = 100;
+				bricks[i * 9 + j].size.y = 50;
 			}
 		}
 		paddle.loc = Vector2f((900 - paddle.paddleW) / 2, 900 - paddle.paddleH - 40);
@@ -509,15 +683,15 @@ void update_state(float dt)
 		ball.loc.y = paddle.loc.y - ball.radius * 2;
 		hitBricks = 0;
 		ball.speed += 50;
-		playlevel = true;
 	}
 }
 
-void render_frame()
+void render_frame(RectangleShape background, Texture &paddleArt, Texture &ballArt)
 {
 	window.clear();
-	window.draw(paddle.SpawnPaddle());
-	window.draw(ball.SpawnBall());
+	window.draw(background);
+	window.draw(paddle.SpawnPaddle(paddleArt));
+	window.draw(ball.SpawnBall(ballArt));
 	for (int i = 0; i < livesLeft; i++)
-		window.draw(lives[i].SpawnLives());
+		window.draw(lives[i].SpawnLives(paddleArt));
 }

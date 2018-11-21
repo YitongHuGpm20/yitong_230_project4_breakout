@@ -9,11 +9,11 @@
 
 using namespace sf;
 
-RectangleShape Lives::SpawnLives() {
+RectangleShape Lives::SpawnLives(Texture &paddle) {
 	RectangleShape shape;
 	loc.y = 900 - liveH - 10;
 	shape.setPosition(loc.x, loc.y);
 	shape.setSize(Vector2f(liveW, liveH));
-	shape.setFillColor(Color::Blue);
+	shape.setTexture(&paddle);
 	return shape;
 }

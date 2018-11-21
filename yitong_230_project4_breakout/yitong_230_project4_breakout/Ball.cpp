@@ -9,10 +9,10 @@
 
 using namespace sf;
 
-CircleShape Ball::SpawnBall() {
+CircleShape Ball::SpawnBall(Texture &ball) {
 	CircleShape shape;
 	shape.setPosition(loc.x, loc.y);
 	shape.setRadius(radius);
-	shape.setFillColor(Color::White);
+	shape.setTexture(&ball);
 	return shape;
 }

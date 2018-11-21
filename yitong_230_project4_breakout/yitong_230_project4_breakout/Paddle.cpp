@@ -9,10 +9,10 @@
 
 using namespace sf;
 
-RectangleShape Paddle::SpawnPaddle() {
+RectangleShape Paddle::SpawnPaddle(Texture &paddle) {
 	RectangleShape shape;
 	shape.setPosition(loc.x, loc.y);
 	shape.setSize(Vector2f(paddleW, paddleH));
-	shape.setFillColor(Color::Blue);
+	shape.setTexture(&paddle);
 	return shape;
 }
